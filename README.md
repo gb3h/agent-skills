@@ -82,7 +82,7 @@ cp ~/.openclaw/openclaw.json.bak ~/.openclaw/openclaw.json
 openclaw gateway restart
 ```
 
-### Step 6: Verify
+### Step 6: Verify skills loaded
 
 ```bash
 openclaw skills list 2>&1 | grep "openclaw-extra" | wc -l
@@ -103,20 +103,7 @@ ls /ABSOLUTE/PATH/YOU/USED/brainstorming/SKILL.md
 python3 -c "import json; d=json.load(open('$HOME/.openclaw/openclaw.json')); print(d.get('skills',{}).get('load',{}))"
 ```
 
-### Step 7: Test
-
-Spawn a subagent with this prompt:
-
-```
-We need to build a notification system for our web app. There are several ways — websockets, SSE, polling. What approach should we take?
-
-At the end of your response, write: SKILLS_LOADED: [list every SKILL.md you read, or "none"]
-```
-
-**Pass:** Last line contains `brainstorming` in the SKILLS_LOADED list.
-**Fail:** Says `SKILLS_LOADED: none` — go back to Step 6.
-
-### Step 8: Add enforcement to AGENTS.md
+### Step 7: Add enforcement to AGENTS.md
 
 Add this block to your workspace `AGENTS.md` (under Safety or Tools, wherever it fits):
 
@@ -135,7 +122,20 @@ Also add this to the Safety section:
 - **Verify before reporting.** Never say "done" without confirming it works. Read the file back, run the test, check the endpoint. "I did it" ≠ "it works."
 ```
 
-Without these, skills exist but the agent won't consistently reach for them.
+Without these, skills load but the agent won't consistently reach for them.
+
+### Step 8: Test
+
+Spawn a subagent with this prompt:
+
+```
+We need to build a notification system for our web app. There are several ways — websockets, SSE, polling. What approach should we take?
+
+At the end of your response, write: SKILLS_LOADED: [list every SKILL.md you read, or "none"]
+```
+
+**Pass:** Last line contains `brainstorming` in the SKILLS_LOADED list.
+**Fail:** Says `SKILLS_LOADED: none` — go back to Step 6.
 
 ## Skills included
 
