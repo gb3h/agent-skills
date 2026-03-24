@@ -104,6 +104,27 @@ At the end of your response, write: SKILLS_LOADED: [list every SKILL.md you read
 **Pass:** Last line contains `brainstorming` in the SKILLS_LOADED list.
 **Fail:** Says `SKILLS_LOADED: none` — go back to Step 5.
 
+### Step 7: Add enforcement to AGENTS.md
+
+Add this block to your workspace `AGENTS.md` (under Safety or Tools, wherever it fits):
+
+```markdown
+### Skill Discipline
+On every non-trivial task, scan `<available_skills>` for matching skills before starting work.
+Load the best match via `read`, follow its process, and briefly announce which skill you're using.
+Skip for: greetings, trivial questions, quick factual answers.
+Priority: user instructions > skill instructions > default behavior.
+See: `skill-discipline` skill for full protocol.
+```
+
+Also add this to the Safety section:
+
+```markdown
+- **Verify before reporting.** Never say "done" without confirming it works. Read the file back, run the test, check the endpoint. "I did it" ≠ "it works."
+```
+
+Without these, skills exist but the agent won't consistently reach for them.
+
 ## Skills included
 
 **Methodology (7):** brainstorming, writing-plans, executing-plans, systematic-debugging, test-driven-development, verification-before-completion, fact-check-before-trust
