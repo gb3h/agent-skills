@@ -20,6 +20,11 @@ Copy the output. You need it for the next step.
 
 ### Step 3: Edit `~/.openclaw/openclaw.json`
 
+**⚠️ Back up the config first:**
+```bash
+cp ~/.openclaw/openclaw.json ~/.openclaw/openclaw.json.bak
+```
+
 Read the file first. Find the `"skills"` key. If it exists, add `"load"` inside it. If it doesn't exist, create it.
 
 **You must merge this into the existing config — do NOT overwrite the file.**
@@ -58,19 +63,26 @@ Example of what the `skills` block should look like after editing (your existing
 - Overwriting the whole file or the whole `skills` block → breaks existing config
 - Invalid JSON (trailing commas, missing quotes) → gateway won't start
 
-### Step 4: Restart the gateway
+### Step 4: Validate JSON before restarting
+
+```bash
+python3 -c "import json; json.load(open('$HOME/.openclaw/openclaw.json')); print('OK')"
+```
+
+**Must print `OK`.** If it shows an error, fix the JSON before proceeding. Do NOT restart with broken JSON — the gateway will crash and you will be offline with no way to self-recover.
+
+If you can't fix it, restore the backup:
+```bash
+cp ~/.openclaw/openclaw.json.bak ~/.openclaw/openclaw.json
+```
+
+### Step 5: Restart the gateway
 
 ```bash
 openclaw gateway restart
 ```
 
-If the gateway fails to start, you broke the JSON. Run:
-```bash
-python3 -c "import json; json.load(open('$HOME/.openclaw/openclaw.json'))"
-```
-This will show the exact syntax error. Fix it, then restart again.
-
-### Step 5: Verify
+### Step 6: Verify
 
 ```bash
 openclaw skills list 2>&1 | grep "openclaw-extra" | wc -l
@@ -91,7 +103,7 @@ ls /ABSOLUTE/PATH/YOU/USED/brainstorming/SKILL.md
 python3 -c "import json; d=json.load(open('$HOME/.openclaw/openclaw.json')); print(d.get('skills',{}).get('load',{}))"
 ```
 
-### Step 6: Test
+### Step 7: Test
 
 Spawn a subagent with this prompt:
 
@@ -102,9 +114,9 @@ At the end of your response, write: SKILLS_LOADED: [list every SKILL.md you read
 ```
 
 **Pass:** Last line contains `brainstorming` in the SKILLS_LOADED list.
-**Fail:** Says `SKILLS_LOADED: none` — go back to Step 5.
+**Fail:** Says `SKILLS_LOADED: none` — go back to Step 6.
 
-### Step 7: Add enforcement to AGENTS.md
+### Step 8: Add enforcement to AGENTS.md
 
 Add this block to your workspace `AGENTS.md` (under Safety or Tools, wherever it fits):
 
