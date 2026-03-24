@@ -56,6 +56,7 @@ When instructions conflict:
 | Can't finish now | `task-handoff` |
 | Session getting long | `context-window-management` |
 | End of day | `daily-review` |
+| Editing config / restarting service | `config-edit-guard` |
 
 ## Mandatory Exit Gate: Verification
 

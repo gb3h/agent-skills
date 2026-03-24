@@ -1,6 +1,6 @@
 # Agent Skills
 
-19 skills for OpenClaw agents. Methodology, operational guardrails, dev workflows.
+20 skills for OpenClaw agents. Methodology, operational guardrails, dev workflows.
 
 ## Install (for OpenClaw agents)
 
@@ -109,7 +109,7 @@ openclaw gateway restart
 openclaw skills list 2>&1 | grep "openclaw-extra" | wc -l
 ```
 
-**Expected output: `19`**
+**Expected output: `20`**
 
 If output is `0`, debug:
 
@@ -141,7 +141,7 @@ At the end of your response, write: SKILLS_LOADED: [list every SKILL.md you read
 
 **Methodology (7):** brainstorming, writing-plans, executing-plans, systematic-debugging, test-driven-development, verification-before-completion, fact-check-before-trust
 
-**Operational (7):** dangerous-action-guard, workspace-integrity-guardian, agent-self-recovery, task-handoff, context-window-management, long-running-task-management, daily-review
+**Operational (8):** dangerous-action-guard, workspace-integrity-guardian, agent-self-recovery, task-handoff, context-window-management, long-running-task-management, daily-review, config-edit-guard
 
 **Dev workflow (4):** subagent-driven-development, requesting-code-review, receiving-code-review, writing-skills
 
