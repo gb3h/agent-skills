@@ -1,113 +1,122 @@
 # Agent Skills
 
-19 plug-and-play skills for [OpenClaw](https://github.com/openclaw/openclaw) agents. Battle-tested methodology, operational guardrails, and development workflows.
+19 skills for OpenClaw agents. Methodology, operational guardrails, dev workflows.
 
-No dependencies. No install scripts. Just markdown skill files your agent reads and follows.
+## Install (for OpenClaw agents)
 
-## Skills
+### Step 1: Clone
 
-### Methodology
-| Skill | What it enforces |
-|-------|-----------------|
-| `brainstorming` | Structured ideation: explore → propose 2-3 approaches → evaluate → get approval before implementing |
-| `writing-plans` | Clear implementation plans with file maps, bite-sized steps, risks, and definition of done |
-| `executing-plans` | Step-by-step plan execution with review checkpoints and "stop and ask" discipline |
-| `systematic-debugging` | 4-phase root cause analysis. Iron Law: no fixes without investigation first |
-| `test-driven-development` | Red/green/refactor. Iron Law: no production code without a failing test first |
-| `verification-before-completion` | Evidence before claims. Iron Law: no completion claims without fresh verification |
-| `fact-check-before-trust` | Extract claims, score confidence, verify before acting on numbers/dates/names |
+```bash
+git clone https://github.com/gb3h/agent-skills.git ~/.openclaw/workspace/agent-skills
+```
 
-### Operational
-| Skill | What it enforces |
-|-------|-----------------|
-| `dangerous-action-guard` | Pause and confirm before destructive/irreversible actions (rm, force-push, external sends) |
-| `workspace-integrity-guardian` | Hash critical workspace files, detect unauthorized modifications or drift |
-| `agent-self-recovery` | Detect stuck loops, name the pattern, break out systematically |
-| `task-handoff` | Structured handoff documents when work can't be completed in current session |
-| `context-window-management` | Strategies to prevent context overflow in long-running sessions |
-| `long-running-task-management` | Break multi-hour tasks into checkpointed, resumable stages |
-| `daily-review` | End-of-day structured summary with memory updates and next priorities |
+### Step 2: Find the absolute path to the skills directory
 
-### Development Workflow
-| Skill | What it enforces |
-|-------|-----------------|
-| `subagent-driven-development` | Per-task subagent dispatch with review gates between tasks |
-| `requesting-code-review` | Structured review dispatch: gather diff, craft context, act on severity |
-| `receiving-code-review` | Evaluate before implementing. Push back when wrong. No sycophantic agreement. |
-| `writing-skills` | TDD for skills: baseline test → write skill → pressure test → close loopholes |
+```bash
+echo "$(cd ~/.openclaw/workspace/agent-skills/skills && pwd)"
+```
 
-### Enforcement
-| Skill | What it enforces |
-|-------|-----------------|
-| `skill-discipline` | Meta-skill: check and use skills on every non-trivial task. Mandatory verification exit gate. |
+Copy the output. You need it for the next step.
 
-## Installation
+### Step 3: Edit `~/.openclaw/openclaw.json`
 
-### For OpenClaw agents
+Read the file first. Find the `"skills"` key. If it exists, add `"load"` inside it. If it doesn't exist, create it.
 
-Add the repo's `skills/` directory to `skills.load.extraDirs` in `~/.openclaw/openclaw.json`:
+**You must merge this into the existing config — do NOT overwrite the file.**
+
+Add this inside the `"skills"` object:
 
 ```json
-{
-  "skills": {
-    "load": {
-      "extraDirs": [
-        "/path/to/agent-skills/skills"
-      ],
-      "watch": true
-    }
+"load": {
+  "extraDirs": [
+    "/ABSOLUTE/PATH/FROM/STEP/2/skills"
+  ],
+  "watch": true
+}
+```
+
+Example of what the `skills` block should look like after editing (your existing entries may differ):
+
+```json
+"skills": {
+  "load": {
+    "extraDirs": [
+      "/home/youruser/.openclaw/workspace/agent-skills/skills"
+    ],
+    "watch": true
+  },
+  "entries": {
+    "...existing entries stay here..."
   }
 }
 ```
 
-Then restart the gateway:
+**Common mistakes:**
+- Using `~` instead of the full absolute path → will not work
+- Pointing to the repo root instead of the `skills/` subdirectory → will not work
+- Creating symlinks instead of using `extraDirs` → will not work (OpenClaw rejects symlinks that resolve outside their root)
+- Overwriting the whole file or the whole `skills` block → breaks existing config
+- Invalid JSON (trailing commas, missing quotes) → gateway won't start
+
+### Step 4: Restart the gateway
+
 ```bash
 openclaw gateway restart
 ```
 
-Verify:
+If the gateway fails to start, you broke the JSON. Run:
 ```bash
-openclaw skills list | grep -c "openclaw-extra"
-# Expected: 19
+python3 -c "import json; json.load(open('$HOME/.openclaw/openclaw.json'))"
+```
+This will show the exact syntax error. Fix it, then restart again.
+
+### Step 5: Verify
+
+```bash
+openclaw skills list 2>&1 | grep "openclaw-extra" | wc -l
 ```
 
-### ⚠️ Do NOT use symlinks
+**Expected output: `19`**
 
-OpenClaw rejects symlinks that resolve outside their configured root directory. Use `extraDirs` instead.
+If output is `0`, debug:
 
-### For other agent frameworks
+```bash
+# Check for symlink rejection:
+openclaw skills list 2>&1 | grep -i "skipping"
 
-Each skill is a standalone `SKILL.md` file. Copy the ones you want into your agent's skill/instruction directory. No dependencies between skills — pick what you need.
+# Check the path is correct:
+ls /ABSOLUTE/PATH/YOU/USED/brainstorming/SKILL.md
 
-## How it works
+# Check config is valid:
+python3 -c "import json; d=json.load(open('$HOME/.openclaw/openclaw.json')); print(d.get('skills',{}).get('load',{}))"
+```
 
-Skills are markdown files with YAML frontmatter. Your agent reads them when a task matches the skill's description. The `skill-discipline` meta-skill teaches the agent to check for matching skills at every task start.
+### Step 6: Test
 
-Key design principles:
-- **Iron Laws** — non-negotiable rules (e.g., "no fixes without root cause investigation")
-- **Rationalization tables** — pre-empt the excuses agents use to skip process
-- **Hard gates** — block progression until conditions are met (e.g., no implementation before design approval)
-- **Verification exit gate** — every skill chains into verification before reporting results
+Spawn a subagent with this prompt:
 
-## Trigger testing
+```
+We need to build a notification system for our web app. There are several ways — websockets, SSE, polling. What approach should we take?
 
-All skills tested via isolated subagents with prompts that don't name the skill. Each agent must independently discover and load the correct skill.
+At the end of your response, write: SKILLS_LOADED: [list every SKILL.md you read, or "none"]
+```
 
-| Round | Pass rate | Notes |
-|-------|-----------|-------|
-| Round 1 (skills not loaded) | 0/10 | Baseline — agents never reached for skills |
-| Round 2 (skills loaded) | 9/10 | One edge case on verification framing |
-| Round 3 (description fix) | 10/10 | All skills trigger correctly |
-| New + upgraded skills | 8/8 | Including 4 new dev workflow skills |
+**Pass:** Last line contains `brainstorming` in the SKILLS_LOADED list.
+**Fail:** Says `SKILLS_LOADED: none` — go back to Step 5.
 
-## Requirements
+## Skills included
 
-- OpenClaw 2026.3.22+ (or any agent framework that reads markdown skill files)
-- Python 3 (only for `workspace-integrity-guardian/scripts/guard.py` — stdlib only, no pip)
+**Methodology (7):** brainstorming, writing-plans, executing-plans, systematic-debugging, test-driven-development, verification-before-completion, fact-check-before-trust
 
-## Origin
+**Operational (7):** dangerous-action-guard, workspace-integrity-guardian, agent-self-recovery, task-handoff, context-window-management, long-running-task-management, daily-review
 
-Inspired by [obra/superpowers](https://github.com/obra/superpowers). All skills rewritten from scratch for OpenClaw's persistent agent runtime.
+**Dev workflow (4):** subagent-driven-development, requesting-code-review, receiving-code-review, writing-skills
+
+**Enforcement (1):** skill-discipline
+
+## For other agent frameworks
+
+Each skill is a standalone `SKILL.md` file. Copy the `skills/` directory into wherever your agent reads instructions. No dependencies between skills.
 
 ## License
 
